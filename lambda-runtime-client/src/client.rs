@@ -185,19 +185,14 @@ impl<'ev> RuntimeClient {
                 "Runtime API returned client error when polling for new events: {}",
                 resp.status()
             );
-            Err(ApiErrorKind::Recoverable(format!(
-                "Error {} when polling for events",
-                resp.status()
-            )))?;
+            return Err(ApiErrorKind::Recoverable(format!("Error {} when polling for events", resp.status())).into());
         }
         if resp.status().is_server_error() {
             error!(
                 "Runtime API returned server error when polling for new events: {}",
                 resp.status()
             );
-            Err(ApiErrorKind::Unrecoverable(
-                "Server error when polling for new events".to_string(),
-            ))?;
+            return Err(ApiErrorKind::Unrecoverable("Server error when polling for new events".to_string()).into());
         }
         let ctx = self.get_event_context(&resp.headers())?;
         let out = resp
@@ -254,10 +249,7 @@ impl<'ev> RuntimeClient {
                 request_id,
                 resp.status()
             );
-            Err(ApiErrorKind::Recoverable(format!(
-                "Error {} while sending response",
-                resp.status()
-            )))?;
+            return Err(ApiErrorKind::Recoverable(format!("Error {} while sending response", resp.status())).into());
         }
         trace!("Posted response to Runtime API for request {}", request_id);
         Ok(())
@@ -298,10 +290,7 @@ impl<'ev> RuntimeClient {
                 request_id,
                 resp.status()
             );
-            Err(ApiErrorKind::Recoverable(format!(
-                "Error {} while sending response",
-                resp.status()
-            )))?;
+            return Err(ApiErrorKind::Recoverable(format!("Error {} while sending response", resp.status())).into());
         }
         trace!("Posted error response for request id {}", request_id);
         Ok(())
@@ -467,7 +456,7 @@ fn header_string(value: Option<&HeaderValue>, header_type: &LambdaHeaders) -> Re
             .to_owned()),
         None => {
             error!("Response headers do not contain {} header", header_type);
-            Err(ApiErrorKind::Recoverable(format!("Missing {} header", header_type)))?
+            Err(ApiErrorKind::Recoverable(format!("Missing {} header", header_type)).into())
         }
     }
 }
